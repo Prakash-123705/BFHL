@@ -4,17 +4,17 @@ const bodyParser = require("body-parser");
 const app = express();
 app.use(bodyParser.json());
 
-const FULL_NAME = "Gnanaprakash";        // full name, lowercase + underscore
-const DOB = "20112005";                      // ddmmyyyy (no dashes)
-const EMAIL = "gnanaprakashpathagunta@gmail.com";   // your email
-const ROLL_NUMBER = "22BCE9694";             // your roll number
+const FULL_NAME = "Gnanaprakash";
+const DOB = "20112005";
+const EMAIL = "gnanaprakashpathagunta@gmail.com";
+const ROLL_NUMBER = "22BCE9694";
 
-// ✅ Root route (for browser check)
+// ✅ Health check route
 app.get("/", (req, res) => {
-  res.send("API is running! Use POST /bfhl");
+  res.send("✅ API is running! Use POST /bfhl");
 });
 
-// ✅ Main required route
+// ✅ Main route
 app.post("/bfhl", (req, res) => {
   try {
     const { data } = req.body;
@@ -59,7 +59,7 @@ app.post("/bfhl", (req, res) => {
 
     res.status(200).json({
       is_success: true,
-      user_id: ${FULL_NAME}_${DOB},
+      user_id: `${FULL_NAME}_${DOB}`,
       email: EMAIL,
       roll_number: ROLL_NUMBER,
       odd_numbers,
@@ -75,5 +75,6 @@ app.post("/bfhl", (req, res) => {
   }
 });
 
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(Server running on port ${PORT}));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
