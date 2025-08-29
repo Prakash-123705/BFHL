@@ -1,100 +1,79 @@
-const express = require('express');
-const { body, validationResult } = require('express-validator');
+const express = require("express");
+const bodyParser = require("body-parser");
+
 const app = express();
+app.use(bodyParser.json());
 
-app.use(express.json());
+const FULL_NAME = "Gnanaprakash";        // full name, lowercase + underscore
+const DOB = "20112005";                      // ddmmyyyy (no dashes)
+const EMAIL = "gnanaprakashpathagunta@gmail.com";   // your email
+const ROLL_NUMBER = "22BCE9694";             // your roll number
 
-function formatUserId(fullName, dob) {
-    return `${fullName.toLowerCase().replace(/ /g, '_')}_${dob}`;
-}
+// ✅ Root route (for browser check)
+app.get("/", (req, res) => {
+  res.send("API is running! Use POST /bfhl");
+});
 
-function isAlphabet(char) {
-    return /^[A-Za-z]$/.test(char);
-}
+// ✅ Main required route
+app.post("/bfhl", (req, res) => {
+  try {
+    const { data } = req.body;
 
-function isNumber(value) {
-    return typeof value === 'number' || /^\d+$/.test(value);
-}
-
-function isSpecialChar(char) {
-    return typeof char === "string" && !/^[A-Za-z0-9]$/.test(char);
-}
-
-function altCapsReverse(str) {
-    let s = str.split('').reverse().join('');
-    let result = '';
-    for (let i = 0; i < s.length; i++) {
-        result += i % 2 === 0 ? s[i].toUpperCase() : s[i].toLowerCase();
-    }
-    return result;
-}
-
-app.post('/bfhl',
-  [
-    body('data').isArray().withMessage("'data' must be an array"),
-    body('full_name').notEmpty().withMessage('full_name is required'),
-    body('dob').notEmpty().withMessage('dob is required'),
-    body('email_id').isEmail().withMessage('email_id must be a valid email'),
-    body('college_roll_number').notEmpty().withMessage('college_roll_number is required'),
-  ],
-  (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        is_success: false,
-        error: errors.array().map(err => err.msg).join(', ')
-      });
-    }
-
-    const { data, full_name, dob, email_id, college_roll_number } = req.body;
-
-    let nums = [];
-    let letters = [];
-    let specials = [];
+    let even_numbers = [];
+    let odd_numbers = [];
+    let alphabets = [];
+    let special_characters = [];
+    let sum = 0;
+    let concatChars = "";
 
     data.forEach(item => {
-        if (isNumber(item)) {
-            let num = typeof item === 'number' ? item : parseInt(item);
-            nums.push(num);
-        } else if (typeof item === "string" && item.length === 1 && isAlphabet(item)) {
-            letters.push(item);
-        } else if (typeof item === "string" && isSpecialChar(item)) {
-            specials.push(item);
-        } else if (typeof item === "string" && item.length > 1 && /^[A-Za-z]+$/.test(item)) {
-            // treat multi-char alphabetic strings as alphabets (like "ABcD")
-            letters.push(item);
+      const str = String(item);
+
+      // Numbers
+      if (/^-?\d+$/.test(str)) {
+        let num = parseInt(str);
+        sum += num;
+        if (num % 2 === 0) {
+          even_numbers.push(str);
+        } else {
+          odd_numbers.push(str);
         }
+
+      // Alphabets
+      } else if (/^[a-zA-Z]+$/.test(str)) {
+        alphabets.push(str.toUpperCase());
+        concatChars += str;
+
+      // Special characters
+      } else {
+        special_characters.push(str);
+      }
     });
 
-    // Separate even and odd numbers and convert all numbers to strings for response
-    let evenNums = nums.filter(n => n % 2 === 0).map(String);
-    let oddNums = nums.filter(n => n % 2 !== 0).map(String);
-
-    // Uppercase alphabets (including multi-char strings)
-    let uppercaseAlphabets = letters.map(l => l.toUpperCase());
-
-    // Sum as string
-    let sumOfNums = String(nums.reduce((a, b) => a + b, 0));
-
-    // Concat string: reverse all letters concatenated and alternate caps
-    let concatAlpha = altCapsReverse(letters.join(''));
+    // Reverse + alternating caps
+    let concat_string = concatChars
+      .split("")
+      .reverse()
+      .map((ch, i) => (i % 2 === 0 ? ch.toUpperCase() : ch.toLowerCase()))
+      .join("");
 
     res.status(200).json({
-        is_success: true,
-        user_id: formatUserId(full_name, dob),
-        email: email_id,
-        roll_number: college_roll_number,
-        odd_numbers: oddNums,
-        even_numbers: evenNums,
-        alphabets: uppercaseAlphabets,
-        special_characters: specials,
-        sum: sumOfNums,
-        concat_string: concatAlpha
+      is_success: true,
+      user_id: ${FULL_NAME}_${DOB},
+      email: EMAIL,
+      roll_number: ROLL_NUMBER,
+      odd_numbers,
+      even_numbers,
+      alphabets,
+      special_characters,
+      sum: String(sum),
+      concat_string
     });
+
+  } catch (err) {
+    res.status(500).json({ is_success: false, error: err.message });
   }
-);
+});
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(Server running on port ${PORT}));
